@@ -10,7 +10,6 @@ class NotificationService {
   static Future<void> initialize(Function(String) onNotificationClick) async {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
-
     final InitializationSettings initializationSettings =
     InitializationSettings(android: initializationSettingsAndroid);
 
@@ -19,7 +18,6 @@ class NotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
         final String? payload = notificationResponse.payload;
         if (payload != null) {
-          print("Notification payload: $payload");
           onNotificationClick(payload);
         }
       },

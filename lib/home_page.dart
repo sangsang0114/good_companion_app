@@ -1,13 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:http/http.dart' as http;
-import 'dart:typed_data';
-import 'package:dio/dio.dart';
 import 'services/firebase_service.dart';
 import 'services/notification_service.dart';
 import 'services/webview_service.dart';
@@ -24,6 +17,7 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    NotificationService.initialize(_handleNotificationClick);
     FirebaseService.setGetAccessTokenAndSendToBackend(_getAccessTokenAndSendToBackend);
     FirebaseService.setupFirebaseMessaging(_handleMessage, _handleMessageOpenedApp);
   }
@@ -42,10 +36,18 @@ class HomePageState extends State<HomePage> {
     if (message.data.containsKey('url')) {
       final url = message.data['url'];
       if (webViewController != null) {
-        WebViewService.loadUrl(webViewController, url);
+        webViewController!.loadUrl(urlRequest: URLRequest(url: Uri.parse(url)));
       } else {
         print("webViewController is null");
       }
+    }
+  }
+
+  void _handleNotificationClick(String payload) {
+    if (webViewController != null) {
+      webViewController!.loadUrl(urlRequest: URLRequest(url: Uri.parse(payload)));
+    } else {
+      print("webViewController is null");
     }
   }
 
