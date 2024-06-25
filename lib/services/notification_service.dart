@@ -4,12 +4,36 @@ import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 
 class NotificationService {
+  static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  static Future<void> initialize(Function(String) onNotificationClick) async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    final InitializationSettings initializationSettings =
+    InitializationSettings(android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
+        final String? payload = notificationResponse.payload;
+        if (payload != null) {
+          print("Notification payload: $payload");
+          onNotificationClick(payload);
+        }
+      },
+    );
+  }
+
   static Future<void> handleMessage(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     if (notification != null && android != null) {
       String? imageUrl = notification.android?.imageUrl;
       print("Received image URL: $imageUrl");
+
+      String? url = message.data['url'];
 
       bool isValidImage = imageUrl != null && await _isImageUrl(imageUrl);
 
@@ -32,15 +56,15 @@ class NotificationService {
           android: androidPlatformChannelSpecifics,
         );
 
-        FlutterLocalNotificationsPlugin().show(
+        flutterLocalNotificationsPlugin.show(
           notification.hashCode,
           notification.title,
           notification.body,
           platformChannelSpecifics,
-          payload: message.data['url'],
+          payload: url,
         );
       } else {
-        FlutterLocalNotificationsPlugin().show(
+        flutterLocalNotificationsPlugin.show(
           notification.hashCode,
           notification.title,
           notification.body,
@@ -51,7 +75,7 @@ class NotificationService {
               importance: Importance.max,
             ),
           ),
-          payload: message.data['url'],
+          payload: url,
         );
       }
     }

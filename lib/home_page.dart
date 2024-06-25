@@ -24,7 +24,14 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    FirebaseService.setGetAccessTokenAndSendToBackend(_getAccessTokenAndSendToBackend);
     FirebaseService.setupFirebaseMessaging(_handleMessage, _handleMessageOpenedApp);
+  }
+
+  @override
+  void dispose() {
+    FirebaseService.setGetAccessTokenAndSendToBackend((_) {});
+    super.dispose();
   }
 
   Future<void> _handleMessage(RemoteMessage message) async {
@@ -34,7 +41,24 @@ class HomePageState extends State<HomePage> {
   void _handleMessageOpenedApp(RemoteMessage message) {
     if (message.data.containsKey('url')) {
       final url = message.data['url'];
-      WebViewService.loadUrl(webViewController, url);
+      if (webViewController != null) {
+        WebViewService.loadUrl(webViewController, url);
+      } else {
+        print("webViewController is null");
+      }
+    }
+  }
+
+  Future<void> _getAccessTokenAndSendToBackend(String token) async {
+    if (webViewController != null) {
+      final accessToken = await WebViewService.getAccessTokenFromLocalStorage(webViewController);
+      if (accessToken != null) {
+        await WebViewService.sendFcmTokenToBackend(token, webViewController);
+      } else {
+        print('Failed to get access token');
+      }
+    } else {
+      print('webViewController is null');
     }
   }
 
@@ -61,12 +85,14 @@ class HomePageState extends State<HomePage> {
                     ),
                     initialOptions: InAppWebViewGroupOptions(
                       crossPlatform: InAppWebViewOptions(
-                        javaScriptEnabled: true,
-                        useShouldOverrideUrlLoading: true
+                          javaScriptEnabled: true,
+                          useShouldOverrideUrlLoading: true
                       ),
                     ),
                     onWebViewCreated: (controller) {
-                      webViewController = controller;
+                      setState(() {
+                        webViewController = controller;
+                      });
                       WebViewService.setupJavaScriptHandlers(controller);
                     },
                     onLoadStart: (controller, url) {
