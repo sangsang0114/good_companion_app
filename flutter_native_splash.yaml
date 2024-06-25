@@ -1,0 +1,10 @@
+flutter_native_splash:
+  color: "#02B9FF"
+  image: assets/splash_screen.jpg  # 로고 이미지를 PNG 형식으로 사용
+  fullscreen: true
+  android_gravity: center  # 안드로이드에서 이미지 위치를 가운데로 설정
+  ios_content_mode: center  # iOS에서 이미지 위치를 가운데로 설정
+  android_12:
+    image: assets/splash_screen.jpg
+    color: "#02B9FF"
+    fullscreen: true
